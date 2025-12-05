@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
 <head>
@@ -55,12 +56,13 @@
         ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a5a5e; }
 
-        /* Glassmorphism Utilities */
+        /* --- UPDATED: Apple Glassmorphism --- */
         .glass-panel {
-            background: rgba(30, 30, 32, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 30, 35, 0.70); /* Slightly darker for contrast */
+            backdrop-filter: blur(50px) saturate(180%); /* Higher blur & saturation */
+            -webkit-backdrop-filter: blur(50px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.12); /* Subtle crisp border */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         .glass-input {
@@ -213,9 +215,11 @@
             </div>
 
             <!-- Main Interface Card -->
-            <div class="glass-panel rounded-3xl p-1 shadow-2xl relative overflow-hidden group">
+            <!-- UPDATED: Removed fixed height, added Apple Glass Style -->
+            <div class="glass-panel rounded-3xl p-1 shadow-2xl relative overflow-hidden group transition-all duration-500">
                 <!-- Inner Container -->
-                <div class="bg-[#000]/40 rounded-[20px] p-6 md:p-8 border border-white/5 relative z-10 min-h-[350px] flex flex-col justify-center">
+                <!-- UPDATED: Removed min-h-[350px] and flex-col/justify-center so it hugs content -->
+                <div class="bg-[#000]/20 rounded-[24px] p-6 md:p-8 border border-white/5 relative z-10 transition-all duration-300">
                     
                     <!-- STEP 1: INPUT URL -->
                     <div id="step-input" class="w-full transition-all duration-500">
@@ -239,7 +243,8 @@
                     </div>
 
                     <!-- STEP 2: LOADING -->
-                    <div id="step-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-20 rounded-[20px]">
+                    <!-- UPDATED: Changed inset-0 to relative padding so it takes up space naturally -->
+                    <div id="step-loading" class="hidden py-12 flex flex-col items-center justify-center rounded-[20px]">
                         <div class="spinner mb-4"></div>
                         <p class="text-gray-300 font-medium animate-pulse">Processing Stream...</p>
                         <p class="text-xs text-gray-500 mt-2">Connecting to HaiCLOP Cloud</p>
@@ -475,6 +480,7 @@
             const stepReview = document.getElementById('step-review');
 
             stepLoading.classList.remove('hidden');
+            stepInput.classList.add('hidden'); // Hide input immediately
             
             try {
                 const res = await fetch('/api/get-info', {
@@ -491,12 +497,12 @@
                 populateReview(data.data);
                 
                 stepLoading.classList.add('hidden');
-                stepInput.classList.add('hidden');
                 stepReview.classList.remove('hidden');
                 showToast("Metadata extracted successfully!", "success");
 
             } catch(e) {
                 stepLoading.classList.add('hidden');
+                stepInput.classList.remove('hidden'); // Show input again on error
                 showToast(e.message || "Failed to analyze video. Check URL.", "error");
             }
         }
@@ -640,9 +646,6 @@
             document.getElementById('urlInput').focus();
         }
 
-        // Removed auto scroll on load since history is hidden
-        // function scrollToHistory() ...
-
         window.onload = () => {
             document.getElementById('urlInput').focus();
             renderHistory();
@@ -652,5 +655,43 @@
             if(e.key === 'Enter') fetchInfo();
         });
     </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
 </body>
 </html>
