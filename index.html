@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProStream by HaiCLOP</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Inter Font (Apple-like) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        apple: {
+                            gray: '#1c1c1e',
+                            dark: '#000000',
+                            accent: '#0A84FF',
+                            success: '#30D158',
+                            danger: '#FF453A',
+                            warning: '#FF9F0A',
+                            card: 'rgba(28, 28, 30, 0.65)'
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                        'glow': '0 0 20px rgba(10, 132, 255, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Styles */
+        body {
+            background-color: #000;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            color: #f5f5f7;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5a5a5e; }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(30, 30, 32, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15);
+        }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-enter { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes spin-apple {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin-apple 1s linear infinite;
+        }
+
+        /* Segmented Control Animation */
+        .segmented-control {
+            position: relative;
+            background: rgba(118, 118, 128, 0.24);
+            border-radius: 9px;
+            padding: 2px;
+            display: flex;
+        }
+        .segmented-indicator {
+            position: absolute;
+            top: 2px;
+            bottom: 2px;
+            left: 2px;
+            width: calc(50% - 2px);
+            background: #636366; 
+            border-radius: 7px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 0;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04);
+            background-color: #636366; 
+        }
+        .segmented-indicator.active {
+            background-color: #1c1c1e;
+            border: 0.5px solid rgba(0,0,0,0.04);
+        }
+        
+        .segment-btn {
+            flex: 1;
+            text-align: center;
+            padding: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+            color: #ebebf5;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            transform: translateX(100%);
+            opacity: 0;
+            animation: slideInToast 0.4s forwards;
+        }
+        @keyframes slideInToast {
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutToast {
+            to { transform: translateX(120%); opacity: 0; }
+        }
+        .toast.hiding { animation: slideOutToast 0.3s forwards; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Background Glows -->
+    <div class="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[128px] pointer-events-none"></div>
+    <div class="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[128px] pointer-events-none"></div>
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-glow">
+                    <i class="fa-brands fa-youtube text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">ProStream <span class="opacity-50 font-normal">by HaiCLOP</span></span>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- History Button (Toggle) -->
+                <button id="toggleHistoryBtn" onclick="toggleHistory()" class="group flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-xs font-medium text-gray-300 hover:text-white active:bg-white/20">
+                    <i class="fa-solid fa-clock-rotate-left group-hover:rotate-12 transition-transform duration-300"></i>
+                    <span>History</span>
+                </button>
+                <button class="text-xs font-medium bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all border border-white/5">
+                    v3.2.0
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-12 flex flex-col lg:flex-row gap-10 relative">
+        
+        <!-- Left Column: The Converter -->
+        <!-- Added transition for smooth layout shift when history toggles -->
+        <div class="flex-1 max-w-xl mx-auto w-full animate-enter transition-all duration-500 ease-in-out" style="animation-delay: 0.1s;">
+            
+            <div class="text-center mb-10">
+                <h1 class="text-5xl font-bold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500">
+                    Studio Quality.
+                </h1>
+                <p class="text-gray-400 text-lg">Extract audio & video with zero compromise.</p>
+            </div>
+
+            <!-- Main Interface Card -->
+            <div class="glass-panel rounded-3xl p-1 shadow-2xl relative overflow-hidden group">
+                <!-- Inner Container -->
+                <div class="bg-[#000]/40 rounded-[20px] p-6 md:p-8 border border-white/5 relative z-10 min-h-[350px] flex flex-col justify-center">
+                    
+                    <!-- STEP 1: INPUT URL -->
+                    <div id="step-input" class="w-full transition-all duration-500">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 ml-1">Paste YouTube Link</label>
+                        <div class="relative group">
+                            <input type="text" id="urlInput" 
+                                class="w-full glass-input text-white text-lg rounded-2xl px-6 py-5 pl-14 outline-none placeholder-gray-600 font-light"
+                                placeholder="https://www.youtube.com/watch?v=..."
+                            >
+                            <i class="fa-solid fa-link absolute left-6 top-1/2 -translate-y-1/2 text-xl text-gray-600 group-focus-within:text-apple-accent transition-colors"></i>
+                            
+                            <button onclick="fetchInfo()" class="absolute right-3 top-3 bottom-3 bg-white text-black hover:bg-gray-200 px-6 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-lg active:scale-95">
+                                Analyze
+                            </button>
+                        </div>
+                        <div class="mt-6 flex gap-4 justify-center text-xs text-gray-500">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-apple-success"></i> Secure</span>
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-apple-warning"></i> Fast Engine</span>
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-database text-apple-danger"></i> 2GB Limit</span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: LOADING -->
+                    <div id="step-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-20 rounded-[20px]">
+                        <div class="spinner mb-4"></div>
+                        <p class="text-gray-300 font-medium animate-pulse">Processing Stream...</p>
+                        <p class="text-xs text-gray-500 mt-2">Connecting to HaiCLOP Cloud</p>
+                    </div>
+
+                    <!-- STEP 3: REVIEW & DOWNLOAD -->
+                    <div id="step-review" class="hidden w-full animate-enter">
+                        
+                        <!-- Media Preview -->
+                        <div class="flex gap-5 mb-6 bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                            <div class="w-32 h-20 md:w-40 md:h-24 rounded-lg overflow-hidden relative shrink-0 shadow-lg">
+                                <img id="thumbImg" src="" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/10"></div>
+                            </div>
+                            <div class="flex flex-col justify-center min-w-0">
+                                <h3 id="videoTitle" class="text-base font-semibold text-white leading-tight mb-1 line-clamp-2">Loading...</h3>
+                                <div class="flex items-center gap-3 text-xs text-gray-400 font-medium">
+                                    <span id="uploaderName" class="text-gray-300">Channel</span>
+                                    <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+                                    <span id="durationBadge">00:00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Config -->
+                        <div class="space-y-6">
+                            
+                            <!-- Format -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 ml-1">Format</label>
+                                <div class="segmented-control">
+                                    <div class="segmented-indicator" id="segmentIndicator"></div>
+                                    <div class="segment-btn text-white" onclick="setMode('audio')" id="btn-audio"><i class="fa-solid fa-music mr-1.5"></i> Audio MP3</div>
+                                    <div class="segment-btn" onclick="setMode('video')" id="btn-video"><i class="fa-solid fa-video mr-1.5"></i> Video MP4</div>
+                                </div>
+                            </div>
+
+                            <!-- Quality -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 ml-1">Quality</label>
+                                <div class="relative">
+                                    <select id="qualitySelect" class="w-full bg-[#1c1c1e] border border-white/10 text-white rounded-xl px-4 py-3.5 appearance-none outline-none focus:border-apple-accent transition-all cursor-pointer font-medium text-sm shadow-sm"></select>
+                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-3 pt-2">
+                                <button onclick="resetUI()" class="px-6 py-4 rounded-xl font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all text-sm active:scale-95">Cancel</button>
+                                <button onclick="downloadFile()" id="dlBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/30 flex justify-center items-center gap-2 transition-all active:scale-[0.98] group">
+                                    <span>Download Now</span>
+                                    <i class="fa-solid fa-arrow-down group-hover:translate-y-0.5 transition-transform"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Download Timer (Shown during download) -->
+                            <div id="progressContainer" class="hidden text-center">
+                                <p class="text-xs text-gray-400 font-mono"><span class="text-apple-accent animate-pulse">●</span> Processing... Time Elapsed: <span id="timerText">00:00</span></p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <p class="text-center text-gray-600 text-xs mt-8">
+                By using ProStream, you agree to our Terms of Service. <br>
+                Powered by HaiCLOP Neural Engine.
+            </p>
+
+        </div>
+
+        <!-- Right Column: History Sidebar (Initially Hidden) -->
+        <div id="history-panel" class="hidden w-full lg:w-96 shrink-0 animate-enter" style="animation-delay: 0.2s;">
+            <div class="glass-panel rounded-3xl p-6 h-full border border-white/5 flex flex-col relative">
+                <!-- Close Button for Mobile/Desktop -->
+                <button onclick="toggleHistory()" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/5 pr-8">
+                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                        <i class="fa-solid fa-clock-rotate-left mr-2"></i> Recent Activity
+                    </h2>
+                    <button class="text-xs text-apple-accent hover:text-white transition-colors" onclick="clearLocalHistory()">Clear All</button>
+                </div>
+                
+                <div class="space-y-3 flex-grow overflow-y-auto pr-2 custom-scrollbar" id="historyList">
+                    <!-- Javascript populates this from localStorage -->
+                </div>
+
+                <!-- Promo Box -->
+                <div class="mt-6 p-4 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-white/10 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h4 class="font-bold text-white text-sm mb-1">HaiCLOP Premium</h4>
+                        <p class="text-xs text-gray-400 mb-3">Get batch downloads and 8K support.</p>
+                        <button class="w-full py-2 bg-white text-black text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors">Upgrade Plan</button>
+                    </div>
+                    <div class="absolute right-[-20px] top-[-20px] w-24 h-24 bg-apple-accent/20 rounded-full blur-xl"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 bg-black py-8 mt-auto">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h3 class="text-lg font-bold text-white">HaiCLOP <span class="text-apple-accent">Labs</span></h3>
+                <p class="text-xs text-gray-500">© 2025 HaiCLOP Labs Inc. All rights reserved.</p>
+            </div>
+            <div class="flex gap-6 text-gray-400">
+                <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-github text-xl"></i></a>
+                <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-discord text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        let currentMeta = null;
+        let currentMode = 'audio';
+        let downloadInterval = null;
+
+        // --- TOGGLE HISTORY LOGIC ---
+        function toggleHistory() {
+            const panel = document.getElementById('history-panel');
+            const btn = document.getElementById('toggleHistoryBtn');
+            
+            // Toggle visibility class
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                // Optional: visual feedback on button
+                btn.classList.add('bg-white/20', 'text-white');
+                btn.classList.remove('text-gray-300');
+                
+                // Scroll to it on mobile
+                if(window.innerWidth < 1024) {
+                    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                }
+            } else {
+                panel.classList.add('hidden');
+                // Remove visual feedback
+                btn.classList.remove('bg-white/20', 'text-white');
+                btn.classList.add('text-gray-300');
+            }
+        }
+
+        // --- LOCAL STORAGE HISTORY MANAGER ---
+        function saveToHistory(item) {
+            let history = JSON.parse(localStorage.getItem('dl_history') || '[]');
+            history.unshift(item); // Add to top
+            if (history.length > 20) history.pop(); // Limit to 20 items
+            localStorage.setItem('dl_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('dl_history') || '[]');
+            
+            if (history.length === 0) {
+                list.innerHTML = `
+                    <div class="h-40 flex flex-col items-center justify-center text-gray-600">
+                        <i class="fa-regular fa-folder-open text-2xl mb-2 opacity-50"></i>
+                        <p class="text-xs">No downloads yet</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = history.map((item, index) => `
+                <div class="group flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all cursor-default relative">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${item.type === 'audio' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}">
+                        <i class="fa-solid ${item.type === 'audio' ? 'fa-music' : 'fa-video'}"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium text-gray-200 truncate group-hover:text-white">${item.title}</p>
+                        <div class="flex justify-between items-center mt-0.5">
+                            <p class="text-[10px] text-gray-500 font-mono">${item.quality}</p>
+                            <p class="text-[10px] text-gray-600">${item.time}</p>
+                        </div>
+                    </div>
+                    <button onclick="copyLink('${item.url}')" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-white text-white hover:text-black p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity" title="Copy Link">
+                        <i class="fa-solid fa-link text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function clearLocalHistory() {
+            localStorage.removeItem('dl_history');
+            renderHistory();
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url);
+            showToast("Link copied to clipboard!", "success");
+        }
+
+        // --- TIMER LOGIC ---
+        function startTimer() {
+            const timerText = document.getElementById('timerText');
+            const container = document.getElementById('progressContainer');
+            container.classList.remove('hidden');
+            
+            let seconds = 0;
+            if (downloadInterval) clearInterval(downloadInterval);
+            
+            downloadInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                timerText.textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (downloadInterval) clearInterval(downloadInterval);
+            document.getElementById('progressContainer').classList.add('hidden');
+        }
+
+        // --- FETCH INFO ---
+        async function fetchInfo() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            
+            if(!url) return showToast("Please paste a valid YouTube URL first.", "error");
+
+            const stepInput = document.getElementById('step-input');
+            const stepLoading = document.getElementById('step-loading');
+            const stepReview = document.getElementById('step-review');
+
+            stepLoading.classList.remove('hidden');
+            
+            try {
+                const res = await fetch('/api/get-info', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url})
+                });
+                
+                const data = await res.json();
+                
+                if(data.status === 'error') throw new Error(data.message);
+                
+                currentMeta = data.data;
+                populateReview(data.data);
+                
+                stepLoading.classList.add('hidden');
+                stepInput.classList.add('hidden');
+                stepReview.classList.remove('hidden');
+                showToast("Metadata extracted successfully!", "success");
+
+            } catch(e) {
+                stepLoading.classList.add('hidden');
+                showToast(e.message || "Failed to analyze video. Check URL.", "error");
+            }
+        }
+
+        function populateReview(data) {
+            document.getElementById('thumbImg').src = data.thumbnail;
+            document.getElementById('videoTitle').textContent = data.title;
+            document.getElementById('uploaderName').textContent = data.uploader;
+            document.getElementById('durationBadge').textContent = data.duration;
+            setMode('audio');
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            const select = document.getElementById('qualitySelect');
+            const indicator = document.getElementById('segmentIndicator');
+            
+            if (mode === 'audio') {
+                indicator.style.transform = 'translateX(0%)';
+                indicator.style.backgroundColor = '#1c1c1e';
+            } else {
+                indicator.style.transform = 'translateX(100%)';
+                indicator.style.backgroundColor = '#1c1c1e';
+            }
+
+            select.innerHTML = ''; 
+
+            if(mode === 'audio') {
+                currentMeta.formats.audio.forEach(opt => select.add(new Option(opt.label, opt.bitrate)));
+            } else {
+                if(currentMeta.formats.video.length === 0) select.add(new Option("Standard 720p", "720p"));
+                currentMeta.formats.video.forEach(opt => {
+                    let sizeStr = opt.filesize ? ` (${(opt.filesize / 1024 / 1024).toFixed(1)} MB)` : '';
+                    select.add(new Option(`${opt.resolution} - ${opt.ext.toUpperCase()}${sizeStr}`, opt.resolution));
+                });
+            }
+        }
+
+        async function downloadFile() {
+            const btn = document.getElementById('dlBtn');
+            const originalHTML = btn.innerHTML;
+            
+            btn.innerHTML = `<div class="spinner w-5 h-5 border-2"></div> <span class="ml-2">Encoding...</span>`;
+            btn.disabled = true;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            
+            startTimer(); // Start Counter
+
+            const formData = new FormData();
+            const originalUrl = document.getElementById('urlInput').value;
+            formData.append('url', originalUrl);
+            formData.append('type', currentMode);
+            formData.append('quality', document.getElementById('qualitySelect').value);
+
+            try {
+                const response = await fetch('/download', { method: 'POST', body: formData });
+
+                stopTimer(); // Stop Counter
+
+                // RATE LIMIT HANDLING
+                if (response.status === 429) {
+                    throw new Error("Rate limit exceeded! You can only convert 5 videos every 5 minutes.");
+                }
+
+                if (!response.ok) {
+                    const txt = await response.text();
+                    throw new Error(txt || "Server returned an error");
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                
+                const header = response.headers.get('Content-Disposition');
+                let fileName = `haiclop_${Date.now()}.${currentMode === 'audio' ? 'mp3' : 'mp4'}`;
+                if (header && header.includes('filename=')) {
+                    fileName = header.split('filename=')[1].replace(/['"]/g, '');
+                }
+                
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+
+                showToast("Download started!", "success");
+                
+                // SAVE TO LOCAL HISTORY
+                saveToHistory({
+                    title: document.getElementById('videoTitle').textContent,
+                    type: currentMode,
+                    quality: document.getElementById('qualitySelect').value,
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    url: originalUrl
+                });
+
+                btn.innerHTML = `<i class="fa-solid fa-check text-white"></i> <span class="ml-2">Complete</span>`;
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                }, 3000);
+
+            } catch (error) {
+                stopTimer();
+                showToast(error.message, "error");
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                btn.classList.remove('opacity-80', 'cursor-not-allowed');
+            }
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let icon = type === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation';
+            let colorClass = type === 'success' ? 'text-apple-success' : 'text-apple-danger';
+
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} ${colorClass} text-xl"></i>
+                <div class="flex-1">
+                    <h4 class="font-bold text-sm">${type === 'success' ? 'Success' : 'Error'}</h4>
+                    <p class="text-xs text-gray-300">${message}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 4000);
+        }
+
+        function resetUI() {
+            document.getElementById('step-input').classList.remove('hidden');
+            document.getElementById('step-loading').classList.add('hidden');
+            document.getElementById('step-review').classList.add('hidden');
+            document.getElementById('urlInput').value = '';
+            document.getElementById('urlInput').focus();
+        }
+
+        // Removed auto scroll on load since history is hidden
+        // function scrollToHistory() ...
+
+        window.onload = () => {
+            document.getElementById('urlInput').focus();
+            renderHistory();
+        };
+
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') fetchInfo();
+        });
+    </script>
+</body>
+</html>
