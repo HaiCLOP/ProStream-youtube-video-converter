@@ -20,8 +20,8 @@ Follow these steps to get ProStream running on your local machine.
 
 1. Clone the Repository
 
-git clone [https://github.com/yourusername/prostream.git](https://github.com/yourusername/prostream.git)
-cd prostream
+git clone [https://github.com/HaiCLOP/ProStream-youtube-video-converter.git](https://github.com/HaiCLOP/ProStream-youtube-video-converter.git)
+cd ProStream-youtube-video-converter
 
 
 2. Install Python Dependencies
@@ -55,7 +55,7 @@ Paste them directly into the root folder of this project (the exact same folder 
 
 ⚠️ Note: Your project folder structure should look like this:
 
-prostream/
+ProStream-youtube-video-converter/
 ├── app.py
 ├── templates/
 ├── static/
